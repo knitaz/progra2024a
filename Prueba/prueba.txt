@@ -27,5 +27,3 @@ tilin
 olaaas
 ajaja
 kjk
-no
-SI
