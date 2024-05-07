@@ -11,7 +11,7 @@ hola
 using namespace std;
 test
 print("HOLA MUNDO!!!1")
-
+se van a ir baneados todos
 A ver veamos 
 Error_404_not_file_found
 cd
