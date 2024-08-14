@@ -1,0 +1,212 @@
+#include <iostream>
+#include <vector>
+#include <ctime>
+#include <cstdlib>
+
+using namespace std;
+
+struct Carta {
+    string valor;
+    string palo;
+};
+
+void inicializarBaraja(vector<Carta>& baraja) {
+    string valores[] = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"};
+    string palos[] = {"C", "D", "P", "T"};  // Corazones, Diamantes, Picas, Tréboles
+
+    for (const auto& valor : valores) {
+        for (const auto& palo : palos) {
+            Carta carta;
+            carta.valor = valor;
+            carta.palo = palo;
+            baraja.push_back(carta);
+        }
+    }
+}
+
+void mezclarBaraja(vector<Carta>& baraja) {
+    srand(time(0));
+    for (size_t i = 0; i < baraja.size(); ++i) {
+        size_t j = rand() % baraja.size();
+        swap(baraja[i], baraja[j]);
+    }
+}
+
+Carta repartirCarta(vector<Carta>& baraja) {
+    Carta carta = baraja.back();
+    baraja.pop_back();
+    return carta;
+}
+
+string nombreCarta(const Carta& carta) {
+    string nombrePalo;
+    if (carta.palo == "C") nombrePalo = "corazones";
+    else if (carta.palo == "D") nombrePalo = "diamantes";
+    else if (carta.palo == "P") nombrePalo = "picas";
+    else if (carta.palo == "T") nombrePalo = "tréboles";
+
+    return carta.valor + " de " + nombrePalo;
+}
+
+int valorCarta(const Carta& carta) {
+    if (carta.valor == "A") return 11;
+    else if (carta.valor == "K" || carta.valor == "Q" || carta.valor == "J") return 10;
+    else return stoi(carta.valor);
+}
+
+int calcularPuntuacion(vector<Carta>& mano) {
+    int puntuacion = 0;
+    int ases = 0;
+
+    for (const auto& carta : mano) {
+        puntuacion += valorCarta(carta);
+        if (carta.valor == "A") ases++;
+    }
+
+    // Ajustar la puntuación si hay ases y la puntuación es mayor a 21
+    while (puntuacion > 21 && ases > 0) {
+        puntuacion -= 10;
+        ases--;
+    }
+
+    return puntuacion;
+}
+
+void mostrarMano(const vector<Carta>& mano, const string& jugador) {
+    cout << "Mano de " << jugador << ": ";
+    for (const auto& carta : mano) {
+        cout << nombreCarta(carta) << " ";
+    }
+    cout << " - Puntuación: " << calcularPuntuacion(const_cast<vector<Carta>&>(mano)) << endl;
+}
+
+void instrucciones() {
+    cout << "\nInstrucciones del Juego:\n";
+    cout << "1. El objetivo es obtener una mano lo más cercana posible a 21 puntos, sin pasarse.\n";
+    cout << "2. Las cartas numéricas valen su número, las figuras valen 10 y el As vale 1 u 11.\n";
+    cout << "3. Cada jugador recibe dos cartas al comienzo. El primer jugador muestra sus cartas y el segundo jugador hace lo mismo.\n";
+    cout << "4. Los jugadores pueden pedir más cartas o plantarse.\n";
+    cout << "5. El jugador con la mano más cercana a 21 sin pasarse gana.\n";
+}
+
+void creditos() {
+    cout << "\nCréditos:\n";
+    cout << "Juego desarrollado por: Dylan Bedoya & Sebastian Paguay\n";
+}
+
+int main() {
+    int opcion;
+    bool salir = false;
+
+    string nombreJugador1, nombreJugador2;
+
+    cout << "Ingrese el nombre del Jugador 1: ";
+    cin >> nombreJugador1;
+    cout << "Ingrese el nombre del Jugador 2: ";
+    cin >> nombreJugador2;
+
+    while (!salir) {
+        cout << "\nMenu Principal:\n";
+        cout << "1. Iniciar Juego\n";
+        cout << "2. Instrucciones\n";
+        cout << "3. Créditos\n";
+        cout << "4. Salir\n";
+        cout << "Elige una opción: ";
+        cin >> opcion;
+
+        switch(opcion) {
+            case 1: {
+                vector<Carta> baraja;
+                vector<Carta> manoJugador1;
+                vector<Carta> manoJugador2;
+
+                cout<<endl;
+                inicializarBaraja(baraja);
+                mezclarBaraja(baraja);
+
+                // Repartir dos cartas a cada jugador
+                manoJugador1.push_back(repartirCarta(baraja));
+                manoJugador1.push_back(repartirCarta(baraja));
+                manoJugador2.push_back(repartirCarta(baraja));
+                manoJugador2.push_back(repartirCarta(baraja));
+
+                mostrarMano(manoJugador1, nombreJugador1);
+                mostrarMano(manoJugador2, nombreJugador2);
+
+                // Turno del jugador 1
+                while (true) {
+                    char opcion;
+                    cout << nombreJugador1 << ", ¿deseas pedir otra carta? (s/n): ";
+                    cin >> opcion;
+
+                    if (opcion == 's' || opcion == 'S') {
+                        manoJugador1.push_back(repartirCarta(baraja));
+                        mostrarMano(manoJugador1, nombreJugador1);
+
+                        if (calcularPuntuacion(manoJugador1) > 21) {
+                            cout << nombreJugador1 << " se ha pasado. ¡" << nombreJugador2 << " gana!" << endl;
+                            return 0;
+                        }
+                    } else {
+                        break;
+                    }
+                }
+
+                // Turno del jugador 2
+                while (true) {
+                    char opcion;
+                    cout << nombreJugador2 << ", ¿deseas pedir otra carta? (s/n): ";
+                    cin >> opcion;
+
+                    if (opcion == 's' || opcion == 'S') {
+                        manoJugador2.push_back(repartirCarta(baraja));
+                        mostrarMano(manoJugador2, nombreJugador2);
+
+                        if (calcularPuntuacion(manoJugador2) > 21) {
+                            cout << nombreJugador2 << " se ha pasado. ¡" << nombreJugador1 << " gana!" << endl;
+                            return 0;
+                        }
+                    } else {
+                        break;
+                    }
+                }
+
+                // Determinar el resultado del juego
+                int puntuacionJugador1 = calcularPuntuacion(manoJugador1);
+                int puntuacionJugador2 = calcularPuntuacion(manoJugador2);
+
+                if (puntuacionJugador1 > 21) {
+                    cout << nombreJugador1 << " se ha pasado. ¡" << nombreJugador2 << " gana!" << endl;
+                } else if (puntuacionJugador2 > 21) {
+                    cout << nombreJugador2 << " se ha pasado. ¡" << nombreJugador1 << " gana!" << endl;
+                } else if (puntuacionJugador1 > puntuacionJugador2) {
+                    cout << "¡Felicidades! " << nombreJugador1 << " ha ganado." << endl;
+                } else if (puntuacionJugador2 > puntuacionJugador1) {
+                    cout << "¡Felicidades! " << nombreJugador2 << " ha ganado." << endl;
+                } else {
+                    cout << "Empate entre " << nombreJugador1 << " y " << nombreJugador2 << ", ambos ganan." << endl;
+                }
+                return 0;
+            }
+
+            case 2:
+                instrucciones();
+                break;
+
+            case 3:
+                creditos();
+                break;
+
+            case 4:
+                salir = true;
+                cout << "Saliendo del juego. ¡Gracias por jugar!" << endl;
+                break;
+
+            default:
+                cout << "Opción no válida. Por favor, elige una opción válida." << endl;
+                break;
+        }
+    }
+
+    return 0;
+}
